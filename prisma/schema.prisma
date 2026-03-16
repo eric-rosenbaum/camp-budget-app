@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id        String               @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  members   OrganizationMember[]
+  camps     Camp[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  role           MemberRole   @default(OWNER)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+model Camp {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  seasons        CampSeason[]
+
+  @@map("camps")
+}
+
+model CampSeason {
+  id                       String            @id @default(uuid()) @db.Uuid
+  campId                   String            @map("camp_id") @db.Uuid
+  name                     String
+  year                     Int?
+  capacity                 Int
+  tuitionPerCamper         Decimal           @map("tuition_per_camper") @db.Decimal(12, 2)
+  baselineEnrollmentPercent Decimal          @map("baseline_enrollment_percent") @db.Decimal(5, 2)
+  priorYearCampers         Int?              @map("prior_year_campers")
+  notes                    String?
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+  camp                     Camp              @relation(fields: [campId], references: [id], onDelete: Cascade)
+  expenseCategories        ExpenseCategory[]
+  savedScenarios           SavedScenario[]
+
+  @@map("camp_seasons")
+}
+
+model ExpenseCategory {
+  id               String       @id @default(uuid()) @db.Uuid
+  campSeasonId     String       @map("camp_season_id") @db.Uuid
+  name             String
+  costBehavior     CostBehavior @map("cost_behavior")
+  inputMode        InputMode    @map("input_mode")
+  budgetAmount     Decimal?     @map("budget_amount") @db.Decimal(12, 2)
+  costPerCamper    Decimal?     @map("cost_per_camper") @db.Decimal(12, 2)
+  percentOfRevenue Decimal?     @map("percent_of_revenue") @db.Decimal(7, 4)
+  notes            String?
+  sortOrder        Int?         @map("sort_order")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  campSeason       CampSeason   @relation(fields: [campSeasonId], references: [id], onDelete: Cascade)
+
+  @@map("expense_categories")
+}
+
+model SavedScenario {
+  id                 String     @id @default(uuid()) @db.Uuid
+  campSeasonId       String     @map("camp_season_id") @db.Uuid
+  name               String
+  enrollmentPercent  Decimal    @map("enrollment_percent") @db.Decimal(5, 2)
+  notes              String?
+  projectedRevenue   Decimal?   @map("projected_revenue") @db.Decimal(12, 2)
+  projectedExpenses  Decimal?   @map("projected_expenses") @db.Decimal(12, 2)
+  projectedSurplus   Decimal?   @map("projected_surplus") @db.Decimal(12, 2)
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+  campSeason         CampSeason @relation(fields: [campSeasonId], references: [id], onDelete: Cascade)
+
+  @@map("saved_scenarios")
+}
+
+model ImportBatch {
+  id              String   @id @default(uuid()) @db.Uuid
+  campSeasonId    String   @map("camp_season_id") @db.Uuid
+  filename        String
+  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("import_batches")
+}
+
+enum MemberRole {
+  OWNER
+  MEMBER
+}
+
+enum CostBehavior {
+  FIXED
+  PER_CAMPER
+  PERCENT_REVENUE
+}
+
+enum InputMode {
+  TOTAL_BUDGET
+  PER_CAMPER
+  PERCENT_REVENUE
+}
