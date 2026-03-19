@@ -17,9 +17,14 @@ import type { ChartPoint } from "@/lib/forecasting/types";
 interface SurplusChartProps {
   data: ChartPoint[];
   breakEvenPercent: number | null;
+  currentEnrollment?: number;
 }
 
-export function SurplusChart({ data, breakEvenPercent }: SurplusChartProps) {
+export function SurplusChart({
+  data,
+  breakEvenPercent,
+  currentEnrollment,
+}: SurplusChartProps) {
   return (
     <Card>
       <CardHeader>
@@ -64,6 +69,19 @@ export function SurplusChart({ data, breakEvenPercent }: SurplusChartProps) {
                     position: "top",
                     fontSize: 11,
                     fill: "#92400e",
+                  }}
+                />
+              )}
+              {currentEnrollment != null && (
+                <ReferenceLine
+                  x={currentEnrollment}
+                  stroke="#2563eb"
+                  strokeDasharray="4 4"
+                  label={{
+                    value: `${currentEnrollment}%`,
+                    position: "insideTopRight",
+                    fontSize: 11,
+                    fill: "#1e40af",
                   }}
                 />
               )}

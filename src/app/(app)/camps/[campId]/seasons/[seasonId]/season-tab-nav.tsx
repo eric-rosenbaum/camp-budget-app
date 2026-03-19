@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { label: "Setup", segment: "setup" },
-  { label: "Forecast", segment: "forecast" },
-  { label: "Scenarios", segment: "scenarios" },
+  { label: "Forecast / Scenarios", segment: "forecast" },
 ];
 
 export function SeasonTabNav({
